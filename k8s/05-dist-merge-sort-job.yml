@@ -1,0 +1,73 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dist-merge-sort
+  namespace: dist-merge-sort
+spec:
+  parallelism: 5
+  template:
+    metadata:
+      labels:
+        app: dist-merge-sort
+    spec:
+      restartPolicy: OnFailure
+      volumes:
+        - name: distmergesort-input-volume
+          hostPath:
+            path: /data/dist-merge-sort/input
+        - name: distmergesort-output-volume
+          hostPath:
+            path: /data/dist-merge-sort/output
+      containers:
+        - name: dist-merge-sort-java
+          image: jonminter/dist-merge-sort
+          imagePullPolicy: Never
+#          livenessProbe:
+#            exec:
+#              command: [ "/bin/grpc_health_probe", "-addr=:5000", "-connect-timeout=100ms", "-rpc-timeout=150ms" ]
+#            initialDelaySeconds:
+          ports:
+            - containerPort: 5000
+              name: grpc
+            - containerPort: 9999
+              name: jmx
+          volumeMounts:
+            - name: distmergesort-input-volume
+              mountPath: /var/lib/dist-merge-sort/input
+            - name: distmergesort-output-volume
+              mountPath: /var/lib/dist-merge-sort/output
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_GRPC_PORT
+              value: "5000"
+            - name: SORT_CLUSTER_NAMESPACE
+              value: dist-merge-sort
+            - name: INPUT_DATA_PATH
+              value: "/var/lib/dist-merge-sort/input"
+            - name: OUTPUT_DATA_PATH
+              value: "/var/lib/dist-merge-sort/output"
+            - name: ZOOKEEPER_HOST
+              value: zookeeper-service
+            - name: ZOOKEEPER_PORT
+              value: "2181"
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"
+            - name: SORT_DEBUG_MODE
+              value: "true"

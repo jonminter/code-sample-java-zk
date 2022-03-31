@@ -1,0 +1,46 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: zoonvigator
+  name: zoonavigator-service
+  namespace: dist-merge-sort
+spec:
+  type: NodePort
+  ports:
+    - name: zoonavigator-port
+      port: 9000
+      nodePort: 30090
+      targetPort: 9000
+  selector:
+    app: zoonavigator
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: zoonavigator
+  name: zoonavigator
+  namespace: dist-merge-sort
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zoonavigator
+  template:
+    metadata:
+      labels:
+        app: zoonavigator
+    spec:
+      containers:
+        - image: elkozmon/zoonavigator:latest
+          imagePullPolicy: IfNotPresent
+          name: zoonavigator
+          ports:
+            - containerPort: 9000
+          env:
+            - name: HTTP_PORT
+              value: "9000"
+#            - name: AUTO_CONNECT_CONNECTION_STRING
+#              value:

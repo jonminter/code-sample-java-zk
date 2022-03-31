@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "dev.jonminter.distributedmergesort.server";
+option java_outer_classname = "DistributedMergeSortProto";
+option objc_class_prefix = "DMS";
+
+package jonminter;
+
+service DistributedMergeSort {
+  rpc GetEmployeeManager (GetEmployeeManagerRequest) returns (EmployeeManagerResponse) {}
+  rpc NotifyLeaderUnrecoverableFailure(UnrecoverableFailureRequest) returns (UnrecoverableFailureResponse) {}
+  rpc NotifyFollowerToStopWork(StopWorkRequest) returns (StopWorkResponse) {}
+
+  rpc NotifyFollowerOfLeader(NotifyFollowersOfLeaderRequest) returns (NotifyFollowersOfLeaderResponse);
+  rpc NextBatchOfSortedEmployees(NextBatchOfSortedEmployeesRequest) returns (stream Employee) {}
+}
+
+message NotifyFollowersOfLeaderRequest {
+  string leaderNode = 1;
+}
+
+message NotifyFollowersOfLeaderResponse {
+  bool ack = 1;
+}
+
+message NextBatchOfSortedEmployeesRequest {
+  int32 batchSize = 1;
+}
+
+message NextBatchOfSortedEmployeesResponse {
+  repeated Employee packet = 1;
+}
+
+message Employee {
+  string id = 1;
+  string name  = 2;
+  string department = 3;
+  string manager = 4;
+  bool isDepartmentHead = 5;
+}
+
+message GetEmployeeManagerRequest {
+  string employeeId = 1;
+}
+
+message EmployeeManagerResponse {
+  bool foundMapping = 1;
+  string managerId = 2;
+}
+
+message UnrecoverableFailureRequest {
+  string errorCode = 1;
+  string errorMessage = 2;
+}
+
+enum UnrecoverableFailureAck {
+  FAIL_NOT_LEADER = 0;
+  FAIL_ACKNOWLEDGED = 1;
+}
+
+message UnrecoverableFailureResponse {
+  UnrecoverableFailureAck ack = 1;
+}
+
+message StopWorkRequest {
+  string reasonCode = 1;
+  string reasonMessage = 2;
+}
+
+enum StopWorkAck {
+  STOP_WORk_NOT_FOLLOWER = 0;
+  STOP_WORK_ACKNOWLEDGED = 1;
+}
+
+message StopWorkResponse {
+  StopWorkAck ack = 1;
+}

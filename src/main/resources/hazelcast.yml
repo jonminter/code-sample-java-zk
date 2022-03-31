@@ -1,0 +1,9 @@
+hazelcast:
+  network:
+    join:
+      multicase:
+        enabled: false
+      kubernetes:
+        enabled: true
+        namespace: dist-merge-sort
+        service-name: dist-merge-sort
